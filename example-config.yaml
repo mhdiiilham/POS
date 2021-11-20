@@ -1,0 +1,9 @@
+env: ""
+port: ""
+jwtSecret: ""
+database:
+  dbName: ""
+  user: ""
+  password: ""
+  host: ""
+  port: 5432
