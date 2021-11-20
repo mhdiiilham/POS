@@ -4,6 +4,7 @@ type Config struct {
 	Env       string   `mapstructure:"env"`
 	Port      string   `mapstructure:"port"`
 	JwtSecret string   `mapstructure:"jwtSecret"`
+	JwtIssuer string   `mapstructure:"jwtIssuer"`
 	Database  Database `mapstructure:"database"`
 }
 

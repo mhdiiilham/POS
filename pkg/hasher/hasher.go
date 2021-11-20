@@ -7,11 +7,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type Hasher interface {
-	HashPassword(ctx context.Context, password string) (hashed string, err error)
-	ComparePassword(ctx context.Context, hashedPassword, password string) error
-}
-
 type hasher struct {
 }
 
