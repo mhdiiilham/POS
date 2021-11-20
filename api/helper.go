@@ -16,7 +16,6 @@ func SuccessResponse(w http.ResponseWriter, msg string, data interface{}, httpCo
 		UnknownErrorResponse(w, err)
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(httpCode)
 	w.Write(JSON)
 }
@@ -32,7 +31,6 @@ func FailedResponse(w http.ResponseWriter, err error, httpCode int) {
 		UnknownErrorResponse(w, err)
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(httpCode)
 	w.Write(JSON)
 }
@@ -46,7 +44,6 @@ func UnknownErrorResponse(w http.ResponseWriter, err error) {
 	}
 
 	j, _ := json.Marshal(resp)
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(httpCode)
 	w.Write(j)
 }
