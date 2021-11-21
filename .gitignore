@@ -19,3 +19,4 @@ xdata/*
 
 # Configuration Files
 config.*.yaml
+docker-compose.yaml
