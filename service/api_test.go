@@ -439,3 +439,62 @@ func Test_apiService_CreateUser(t *testing.T) {
 		assert.ErrorIs(t, err, sql.ErrConnDone)
 	})
 }
+
+func Test_apiService_GetUsers(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	t.Run("failed - db error", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		userRepository := mock.NewMockRepository(ctrl)
+		hasher := smock.NewMockHasher(ctrl)
+		tokenSigner := smock.NewMockTokenSigner(ctrl)
+		merchantID := 1
+		expectedErr := sql.ErrConnDone
+
+		opts := user.RepositoryGetUserPaginationOptions{
+			Limit:  10,
+			Cursor: 0,
+		}
+
+		userRepository.
+			EXPECT().
+			Get(ctx, merchantID, &opts).
+			Return([]user.User{}, 0, sql.ErrConnDone)
+
+		s := service.NewAPIService(userRepository, hasher, tokenSigner)
+		users, totalData, err := s.GetUsers(ctx, merchantID, opts.Cursor, opts.Limit)
+		assert.Empty(t, users)
+		assert.Empty(t, totalData)
+		assert.ErrorIs(t, err, expectedErr)
+	})
+
+	t.Run("success", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		userRepository := mock.NewMockRepository(ctrl)
+		hasher := smock.NewMockHasher(ctrl)
+		tokenSigner := smock.NewMockTokenSigner(ctrl)
+		merchantID := 1
+
+		opts := user.RepositoryGetUserPaginationOptions{
+			Limit:  10,
+			Cursor: 0,
+		}
+
+		userRepository.
+			EXPECT().
+			Get(ctx, merchantID, &opts).
+			Return([]user.User{{}, {}, {}, {}, {}, {}, {}, {}, {}, {}}, 1764, nil)
+
+		s := service.NewAPIService(userRepository, hasher, tokenSigner)
+		users, totalData, err := s.GetUsers(ctx, merchantID, opts.Cursor, opts.Limit)
+		assert.NoError(t, err)
+		assert.Equal(t, totalData, 1764)
+		assert.NotEmpty(t, users)
+		assert.Len(t, users, 10)
+	})
+}
