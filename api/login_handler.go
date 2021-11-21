@@ -30,8 +30,6 @@ func (s *server) Login(w http.ResponseWriter, r *http.Request) {
 	ctx := context.WithValue(r.Context(), logger.RequestIDKey, uuid.New().String())
 	var req LoginRequest
 
-	time.Sleep(35 * time.Second)
-
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		logger.Error(ctx, ops, "error decode request body: %v", err)

@@ -11,6 +11,7 @@ import (
 
 type Claims struct {
 	jwt.StandardClaims
+	UserID     int    `json:"userID"`
 	Email      string `json:"email"`
 	MerchantID int    `json:"merchantID"`
 }
@@ -25,7 +26,7 @@ func NewJWTService(secret, issuer string) *service {
 	return &service{secret: secret, issuer: issuer, signingMethod: jwt.SigningMethodHS256}
 }
 
-func (s *service) Sign(ctx context.Context, email string, merchantID int) (at string, err error) {
+func (s *service) Sign(ctx context.Context, userID int, email string, merchantID int) (at string, err error) {
 	const ops = "token.service.Sign"
 	now := time.Now()
 
@@ -42,8 +43,9 @@ func (s *service) Sign(ctx context.Context, email string, merchantID int) (at st
 				NotBefore: now.Unix(),
 				Subject:   "access-token",
 			},
-			Email:      email,
+			UserID:     userID,
 			MerchantID: merchantID,
+			Email:      email,
 		}
 
 		jwtToken := jwt.NewWithClaims(s.signingMethod, claims)
@@ -70,7 +72,7 @@ func (s *service) Extract(ctx context.Context, signedToken string) (jwt.MapClaim
 			} else if method != s.signingMethod {
 				return nil, errors.New("signing method invalid")
 			}
-			return s.secret, nil
+			return []byte(s.secret), nil
 		})
 		if err != nil {
 			logger.Error(ctx, ops, "failed to parse signed token: %v", err)

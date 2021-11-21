@@ -24,7 +24,7 @@ func New(port string) (*server, error) {
 	addr := fmt.Sprintf(":%s", port)
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
-		logger.Error(context.Background(), scope, "failed to create listener on %s: %w", addr, err)
+		logger.Error(context.Background(), scope, "failed to create listener on %s: %v", addr, err)
 		return nil, fmt.Errorf("failed to create listener on %s: %w", addr, err)
 	}
 

@@ -77,7 +77,7 @@ func realMain(ctx context.Context, env string) (*sql.DB, error) {
 	userRepository := userrepository.NewRepository(db)
 	userService := service.NewAPIService(userRepository, pwdHasher, tokenService)
 
-	restAPI := api.NewServer(userService)
+	restAPI := api.NewPOSServer(userService, tokenService)
 	srv, err := server.New(cfg.Port)
 	if err != nil {
 		return nil, err

@@ -12,6 +12,6 @@ type Hasher interface {
 }
 
 type TokenSigner interface {
-	Sign(ctx context.Context, email string, merchantID int) (at string, err error)
+	Sign(ctx context.Context, userID int, email string, merchantID int) (at string, err error)
 	Extract(ctx context.Context, signedToken string) (jwt.MapClaims, error)
 }

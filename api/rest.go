@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/golang-jwt/jwt"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/mhdiiilham/POS/entity/user"
@@ -14,12 +15,24 @@ import (
 	"github.com/rs/cors"
 )
 
+type (
+	tokenSigner interface {
+		Extract(ctx context.Context, signedToken string) (jwt.MapClaims, error)
+	}
+
+	Service interface {
+		Login(ctx context.Context, email, password string) (accessToken string, err error)
+		CreateUser(ctx context.Context, entity user.User) (userID int, err error)
+	}
+)
+
 type server struct {
-	userService user.Service
+	userService Service
+	tokenSigner tokenSigner
 }
 
-func NewServer(userService user.Service) *server {
-	return &server{userService: userService}
+func NewPOSServer(userService Service, tokenSigner tokenSigner) *server {
+	return &server{userService: userService, tokenSigner: tokenSigner}
 }
 
 func (s *server) Routes(ctx context.Context) http.Handler {
@@ -29,8 +42,11 @@ func (s *server) Routes(ctx context.Context) http.Handler {
 	mux := mux.NewRouter()
 
 	mux.Use(s.APIMiddleware())
-	mux.HandleFunc("/api/login", s.Login).
-		Methods(http.MethodPost)
+	mux.HandleFunc("/api/login", s.Login).Methods(http.MethodPost)
+
+	userAPI := mux.PathPrefix("/api/users").Subrouter()
+	userAPI.Use(s.authorization)
+	userAPI.HandleFunc("", s.CreateUser).Methods(http.MethodPost)
 
 	JSON, _ := json.Marshal(Response{
 		Code:    http.StatusRequestTimeout,

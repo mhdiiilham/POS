@@ -103,16 +103,16 @@ func (mr *MockTokenSignerMockRecorder) Extract(ctx, signedToken interface{}) *go
 }
 
 // Sign mocks base method.
-func (m *MockTokenSigner) Sign(ctx context.Context, email string, merchantID int) (string, error) {
+func (m *MockTokenSigner) Sign(ctx context.Context, userID int, email string, merchantID int) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Sign", ctx, email, merchantID)
+	ret := m.ctrl.Call(m, "Sign", ctx, userID, email, merchantID)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Sign indicates an expected call of Sign.
-func (mr *MockTokenSignerMockRecorder) Sign(ctx, email, merchantID interface{}) *gomock.Call {
+func (mr *MockTokenSignerMockRecorder) Sign(ctx, userID, email, merchantID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sign", reflect.TypeOf((*MockTokenSigner)(nil).Sign), ctx, email, merchantID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sign", reflect.TypeOf((*MockTokenSigner)(nil).Sign), ctx, userID, email, merchantID)
 }

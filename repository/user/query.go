@@ -15,4 +15,9 @@ var (
 		FROM "User"
 		Where "email"=$1 AND "deleted_at" IS NULL LIMIT 1
 	`
+
+	insertUser = `
+		INSERT INTO public."User" (email, firstname, lastname, "password", merchant_id, created_at, updated_at, deleted_at)
+		VALUES($1, $2, $3, $4, $5, $6, $6, null) RETURNING id;
+	`
 )

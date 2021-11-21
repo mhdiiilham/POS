@@ -54,7 +54,7 @@ func Test_apiService_Login(t *testing.T) {
 
 		tokenSigner.
 			EXPECT().
-			Sign(ctx, email, 1).
+			Sign(ctx, 1, email, 1).
 			Return(jwt, nil).Times(1)
 
 		service := service.NewAPIService(userRepository, hasher, tokenSigner)
@@ -221,7 +221,7 @@ func Test_apiService_Login(t *testing.T) {
 
 		tokenSigner.
 			EXPECT().
-			Sign(ctx, email, 1).
+			Sign(ctx, 1, email, 1).
 			Return("", jwt.ErrInvalidKey).Times(1)
 
 		service := service.NewAPIService(userRepository, hasher, tokenSigner)
@@ -229,5 +229,213 @@ func Test_apiService_Login(t *testing.T) {
 		accessToken, err := service.Login(ctx, email, password)
 		assert.ErrorIs(t, err, jwt.ErrInvalidKey)
 		assert.Empty(t, accessToken)
+	})
+}
+
+func Test_apiService_CreateUser(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	t.Run("failed - required payload is empty", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		payload := user.User{}
+
+		userRepository := mock.NewMockRepository(ctrl)
+		hasher := smock.NewMockHasher(ctrl)
+		tokenSigner := smock.NewMockTokenSigner(ctrl)
+
+		s := service.NewAPIService(userRepository, hasher, tokenSigner)
+		resp, err := s.CreateUser(ctx, payload)
+		assert.Empty(t, resp)
+		assert.NotNil(t, err)
+		assert.ErrorIs(t, err, user.ErrInvalidCreateParameters)
+	})
+
+	t.Run("failed - hashing password", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		lastname := faker.LastName()
+		password := faker.Password()
+		payload := user.User{
+			Email:     faker.Email(),
+			FirstName: faker.FirstName(),
+			LastName:  &lastname,
+			Password:  password,
+		}
+
+		userRepository := mock.NewMockRepository(ctrl)
+		hasher := smock.NewMockHasher(ctrl)
+		tokenSigner := smock.NewMockTokenSigner(ctrl)
+
+		hasher.
+			EXPECT().
+			HashPassword(ctx, password).
+			Return("", bcrypt.ErrHashTooShort).
+			Times(1)
+
+		s := service.NewAPIService(userRepository, hasher, tokenSigner)
+		resp, err := s.CreateUser(ctx, payload)
+		assert.Empty(t, resp)
+		assert.NotNil(t, err)
+		assert.ErrorIs(t, err, bcrypt.ErrHashTooShort)
+	})
+
+	t.Run("failed - inserting to DB", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		lastname := faker.LastName()
+		password := faker.Password()
+		payload := user.User{
+			Email:     faker.Email(),
+			FirstName: faker.FirstName(),
+			LastName:  &lastname,
+			Password:  password,
+		}
+
+		userRepository := mock.NewMockRepository(ctrl)
+		hasher := smock.NewMockHasher(ctrl)
+		tokenSigner := smock.NewMockTokenSigner(ctrl)
+
+		hasher.
+			EXPECT().
+			HashPassword(ctx, password).
+			Return(password, nil).
+			Times(1)
+
+		userRepository.
+			EXPECT().
+			FindUserByEmail(ctx, payload.Email).
+			Return(nil, sql.ErrNoRows).
+			Times(1)
+
+		userRepository.
+			EXPECT().
+			Create(ctx, payload).
+			Return(int64(0), sql.ErrConnDone).
+			Times(1)
+
+		s := service.NewAPIService(userRepository, hasher, tokenSigner)
+		resp, err := s.CreateUser(ctx, payload)
+		assert.Empty(t, resp)
+		assert.NotNil(t, err)
+		assert.ErrorIs(t, err, sql.ErrConnDone)
+	})
+
+	t.Run("success", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		lastname := faker.LastName()
+		password := faker.Password()
+		payload := user.User{
+			Email:     faker.Email(),
+			FirstName: faker.FirstName(),
+			LastName:  &lastname,
+			Password:  password,
+		}
+
+		userRepository := mock.NewMockRepository(ctrl)
+		hasher := smock.NewMockHasher(ctrl)
+		tokenSigner := smock.NewMockTokenSigner(ctrl)
+
+		hasher.
+			EXPECT().
+			HashPassword(ctx, password).
+			Return(password, nil).
+			Times(1)
+
+		userRepository.
+			EXPECT().
+			FindUserByEmail(ctx, payload.Email).
+			Return(nil, sql.ErrNoRows).
+			Times(1)
+
+		userRepository.
+			EXPECT().
+			Create(ctx, payload).
+			Return(int64(1), nil).
+			Times(1)
+
+		s := service.NewAPIService(userRepository, hasher, tokenSigner)
+		resp, err := s.CreateUser(ctx, payload)
+		assert.NotEmpty(t, resp)
+		assert.NoError(t, err)
+		assert.Equal(t, 1, resp)
+	})
+
+	t.Run("email not unique", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		lastname := faker.LastName()
+		password := faker.Password()
+		payload := user.User{
+			Email:     faker.Email(),
+			FirstName: faker.FirstName(),
+			LastName:  &lastname,
+			Password:  password,
+		}
+
+		userRepository := mock.NewMockRepository(ctrl)
+		hasher := smock.NewMockHasher(ctrl)
+		tokenSigner := smock.NewMockTokenSigner(ctrl)
+
+		hasher.
+			EXPECT().
+			HashPassword(ctx, password).
+			Return(password, nil).
+			Times(1)
+
+		userRepository.
+			EXPECT().
+			FindUserByEmail(ctx, payload.Email).
+			Return(&user.User{}, sql.ErrNoRows).
+			Times(1)
+
+		s := service.NewAPIService(userRepository, hasher, tokenSigner)
+		resp, err := s.CreateUser(ctx, payload)
+		assert.Empty(t, resp)
+		assert.NotNil(t, err)
+		assert.ErrorIs(t, err, user.ErrEmailNotUnique)
+	})
+
+	t.Run("failed - unkownn when checking if user unique", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		lastname := faker.LastName()
+		password := faker.Password()
+		payload := user.User{
+			Email:     faker.Email(),
+			FirstName: faker.FirstName(),
+			LastName:  &lastname,
+			Password:  password,
+		}
+
+		userRepository := mock.NewMockRepository(ctrl)
+		hasher := smock.NewMockHasher(ctrl)
+		tokenSigner := smock.NewMockTokenSigner(ctrl)
+
+		hasher.
+			EXPECT().
+			HashPassword(ctx, password).
+			Return(password, nil).
+			Times(1)
+
+		userRepository.
+			EXPECT().
+			FindUserByEmail(ctx, payload.Email).
+			Return(&user.User{}, sql.ErrConnDone).
+			Times(1)
+
+		s := service.NewAPIService(userRepository, hasher, tokenSigner)
+		resp, err := s.CreateUser(ctx, payload)
+		assert.Empty(t, resp)
+		assert.NotNil(t, err)
+		assert.ErrorIs(t, err, sql.ErrConnDone)
 	})
 }
