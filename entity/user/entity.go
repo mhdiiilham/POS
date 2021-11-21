@@ -23,3 +23,9 @@ var (
 	ErrInvalidCreateParameters error = errors.New("failed creating user due to invalid parameters")
 	ErrEmailNotUnique          error = errors.New("email is already registered")
 )
+
+type RepositoryGetUserPaginationOptions struct {
+	Page   int
+	Limit  int
+	Cursor int
+}

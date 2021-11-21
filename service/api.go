@@ -87,3 +87,19 @@ func (s *apiService) CreateUser(ctx context.Context, entity user.User) (userID i
 	}
 	return int(insertedID), nil
 }
+
+func (s *apiService) GetUsers(ctx context.Context, merchantID, lastID, limit int) (users []user.User, totalData int, err error) {
+	const ops = "service.apiService.GetUsers"
+	paginationOpts := user.RepositoryGetUserPaginationOptions{
+		Limit:  limit,
+		Cursor: lastID,
+	}
+
+	users, totalData, err = s.userRepository.Get(ctx, merchantID, &paginationOpts)
+	if err != nil {
+		logger.Error(ctx, ops, "unexpected error %v", err)
+		return
+	}
+
+	return
+}

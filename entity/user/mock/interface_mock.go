@@ -64,3 +64,19 @@ func (mr *MockRepositoryMockRecorder) FindUserByEmail(ctx, email interface{}) *g
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindUserByEmail", reflect.TypeOf((*MockRepository)(nil).FindUserByEmail), ctx, email)
 }
+
+// Get mocks base method.
+func (m *MockRepository) Get(ctx context.Context, merchantID int, opts *user.RepositoryGetUserPaginationOptions) ([]user.User, int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", ctx, merchantID, opts)
+	ret0, _ := ret[0].([]user.User)
+	ret1, _ := ret[1].(int)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockRepositoryMockRecorder) Get(ctx, merchantID, opts interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), ctx, merchantID, opts)
+}

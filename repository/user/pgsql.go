@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/mhdiiilham/POS/entity/user"
@@ -70,5 +71,55 @@ func (r *repository) Create(ctx context.Context, entity user.User) (id int64, er
 	}
 
 	tx.Commit()
+	return
+}
+
+func (r *repository) Get(ctx context.Context, merchantID int, opts *user.RepositoryGetUserPaginationOptions) (users []user.User, totalData int, err error) {
+	const ops = "user.repository.Get"
+	total := struct {
+		totalUser int64 `db:"totalUsers"`
+	}{}
+
+	logger.Info(ctx, ops, "get users of merchant %d", merchantID)
+	query := getUserByMerchantID
+
+	if opts != nil {
+		query = fmt.Sprintf(`%s AND "User".id > %d LIMIT %d`, getUserByMerchantID, opts.Cursor, opts.Limit)
+	}
+
+	row := r.db.QueryRowContext(ctx, countAllUsersInMerchantID, merchantID)
+	err = row.Scan(&total.totalUser)
+	if err != nil {
+		logger.Error(ctx, ops, "unexpected error %v", err)
+		return
+	}
+
+	rows, err := r.db.QueryContext(ctx, query, merchantID)
+	if err != nil {
+		logger.Error(ctx, ops, "unexpected error: %v", err)
+		return
+	}
+	defer rows.Close()
+
+	logger.Info(ctx, ops, "scanning get users result rows")
+	for rows.Next() {
+		var u user.User
+		errScan := rows.Scan(
+			&u.ID,
+			&u.MerchantID,
+			&u.Email,
+			&u.FirstName,
+			&u.LastName,
+		)
+		if errScan != nil {
+			logger.Error(ctx, ops, "unexpected error while scanning rows %v", err)
+			err = errScan
+			return
+		}
+		users = append(users, u)
+	}
+	logger.Info(ctx, ops, "scanning rows completed")
+
+	totalData = int(total.totalUser)
 	return
 }

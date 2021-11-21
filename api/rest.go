@@ -23,6 +23,7 @@ type (
 	Service interface {
 		Login(ctx context.Context, email, password string) (accessToken string, err error)
 		CreateUser(ctx context.Context, entity user.User) (userID int, err error)
+		GetUsers(ctx context.Context, merchantID, lastID, limit int) (users []user.User, totalData int, err error)
 	}
 )
 
@@ -47,6 +48,7 @@ func (s *server) Routes(ctx context.Context) http.Handler {
 	userAPI := mux.PathPrefix("/api/users").Subrouter()
 	userAPI.Use(s.authorization)
 	userAPI.HandleFunc("", s.CreateUser).Methods(http.MethodPost)
+	userAPI.HandleFunc("", s.GetUsers).Methods(http.MethodGet)
 
 	JSON, _ := json.Marshal(Response{
 		Code:    http.StatusRequestTimeout,
