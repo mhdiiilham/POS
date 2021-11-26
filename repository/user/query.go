@@ -35,4 +35,10 @@ var (
 	countAllUsersInMerchantID = `
 		SELECT COUNT(id) as "totalUsers" FROM "User" Where "merchant_id" = $1
 	`
+
+	deleteUserFromID = `
+		UPDATE "User"
+		SET "deleted_at" = $1
+		WHERE id = $2;
+	`
 )

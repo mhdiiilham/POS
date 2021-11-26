@@ -24,6 +24,7 @@ type (
 		Login(ctx context.Context, email, password string) (accessToken string, err error)
 		CreateUser(ctx context.Context, entity user.User) (userID int, err error)
 		GetUsers(ctx context.Context, merchantID, lastID, limit int) (users []user.User, totalData int, err error)
+		DeleteUser(ctx context.Context, userID int) error
 	}
 )
 
@@ -49,6 +50,7 @@ func (s *server) Routes(ctx context.Context) http.Handler {
 	userAPI.Use(s.authorization)
 	userAPI.HandleFunc("", s.CreateUser).Methods(http.MethodPost)
 	userAPI.HandleFunc("", s.GetUsers).Methods(http.MethodGet)
+	userAPI.HandleFunc("/{userId}", s.RemoveUser).Methods(http.MethodDelete)
 
 	JSON, _ := json.Marshal(Response{
 		Code:    http.StatusRequestTimeout,

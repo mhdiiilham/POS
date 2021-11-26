@@ -103,3 +103,18 @@ func (s *apiService) GetUsers(ctx context.Context, merchantID, lastID, limit int
 
 	return
 }
+
+func (s *apiService) DeleteUser(ctx context.Context, userID int) error {
+	const ops = "service.apiService.DeleteUser"
+	err := s.userRepository.Remove(ctx, userID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return user.ErrUserNotFound
+		}
+
+		logger.Error(ctx, ops, "error removing user %v", err)
+		return err
+	}
+
+	return nil
+}

@@ -123,3 +123,36 @@ func (r *repository) Get(ctx context.Context, merchantID int, opts *user.Reposit
 	totalData = int(total.totalUser)
 	return
 }
+
+func (r *repository) Remove(ctx context.Context, userID int) (err error) {
+	const ops = "repository.user.Remove"
+	var tx *sql.Tx
+	var res sql.Result
+	var rowsAffected int64
+
+	tx, err = r.db.BeginTx(ctx, nil)
+	if err != nil {
+		logger.Error(ctx, ops, "error trying to begin db tx: %v", err)
+		return
+	}
+
+	res, err = tx.ExecContext(ctx, deleteUserFromID, time.Now(), userID)
+	if err != nil {
+		tx.Rollback()
+		return
+	}
+
+	rowsAffected, err = res.RowsAffected()
+	if err != nil {
+		tx.Rollback()
+		return
+	}
+
+	if rowsAffected == 0 {
+		tx.Rollback()
+		err = sql.ErrNoRows
+		return
+	}
+
+	return tx.Commit()
+}

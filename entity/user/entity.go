@@ -22,6 +22,7 @@ var (
 	ErrInvalidEmailAndPasword  error = errors.New("invalid email or/and password")
 	ErrInvalidCreateParameters error = errors.New("failed creating user due to invalid parameters")
 	ErrEmailNotUnique          error = errors.New("email is already registered")
+	ErrUserNotFound            error = errors.New("user not found")
 )
 
 type RepositoryGetUserPaginationOptions struct {
