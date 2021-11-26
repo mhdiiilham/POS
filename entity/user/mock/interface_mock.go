@@ -81,6 +81,21 @@ func (mr *MockRepositoryMockRecorder) Get(ctx, merchantID, opts interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), ctx, merchantID, opts)
 }
 
+// GetUser mocks base method.
+func (m *MockRepository) GetUser(ctx context.Context, userID int) (user.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUser", ctx, userID)
+	ret0, _ := ret[0].(user.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUser indicates an expected call of GetUser.
+func (mr *MockRepositoryMockRecorder) GetUser(ctx, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockRepository)(nil).GetUser), ctx, userID)
+}
+
 // Remove mocks base method.
 func (m *MockRepository) Remove(ctx context.Context, userID int) error {
 	m.ctrl.T.Helper()

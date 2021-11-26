@@ -118,3 +118,15 @@ func (s *apiService) DeleteUser(ctx context.Context, userID int) error {
 
 	return nil
 }
+
+func (s *apiService) GetUser(ctx context.Context, userID int) (entity user.User, err error) {
+	const ops = "service.apiService.GetUser"
+
+	entity, err = s.userRepository.GetUser(ctx, userID)
+	if err != nil {
+		logger.Error(ctx, ops, "unknown error: %v", err)
+		return
+	}
+
+	return
+}

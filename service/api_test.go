@@ -565,3 +565,75 @@ func Test_apiService_DeleteUser(t *testing.T) {
 		assert.Nil(t, err)
 	})
 }
+
+func Test_apiService_GetUser(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	t.Run("failed - user not found", func(t *testing.T) {
+		t.Parallel()
+
+		userID := 3
+		ctx := context.Background()
+		userRepository := mock.NewMockRepository(ctrl)
+		hasher := smock.NewMockHasher(ctrl)
+		tokenSigner := smock.NewMockTokenSigner(ctrl)
+
+		userRepository.
+			EXPECT().
+			GetUser(ctx, userID).
+			Return(user.User{}, user.ErrUserNotFound).
+			Times(1)
+
+		s := service.NewAPIService(userRepository, hasher, tokenSigner)
+		resp, err := s.GetUser(ctx, userID)
+		assert.Empty(t, resp)
+		assert.ErrorIs(t, err, user.ErrUserNotFound)
+	})
+
+	t.Run("failed - unknown error", func(t *testing.T) {
+		t.Parallel()
+
+		userID := 3
+		ctx := context.Background()
+		userRepository := mock.NewMockRepository(ctrl)
+		hasher := smock.NewMockHasher(ctrl)
+		tokenSigner := smock.NewMockTokenSigner(ctrl)
+
+		userRepository.
+			EXPECT().
+			GetUser(ctx, userID).
+			Return(user.User{}, sql.ErrConnDone).
+			Times(1)
+
+		s := service.NewAPIService(userRepository, hasher, tokenSigner)
+		resp, err := s.GetUser(ctx, userID)
+		assert.Empty(t, resp)
+		assert.ErrorIs(t, err, sql.ErrConnDone)
+	})
+
+	t.Run("success", func(t *testing.T) {
+		t.Parallel()
+
+		userID := 3
+		u := user.User{
+			ID: userID,
+		}
+		ctx := context.Background()
+		userRepository := mock.NewMockRepository(ctrl)
+		hasher := smock.NewMockHasher(ctrl)
+		tokenSigner := smock.NewMockTokenSigner(ctrl)
+
+		userRepository.
+			EXPECT().
+			GetUser(ctx, userID).
+			Return(u, nil).
+			Times(1)
+
+		s := service.NewAPIService(userRepository, hasher, tokenSigner)
+		resp, err := s.GetUser(ctx, userID)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, resp)
+		assert.Equal(t, userID, resp.ID)
+	})
+}

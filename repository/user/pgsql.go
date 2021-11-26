@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -155,4 +156,31 @@ func (r *repository) Remove(ctx context.Context, userID int) (err error) {
 	}
 
 	return tx.Commit()
+}
+
+func (r *repository) GetUser(ctx context.Context, userID int) (entity user.User, err error) {
+	const ops = "repository.user.GetUser"
+
+	err = r.db.QueryRowContext(ctx, getUser, userID).Scan(
+		&entity.ID,
+		&entity.MerchantID,
+		&entity.Email,
+		&entity.FirstName,
+		&entity.LastName,
+		&entity.CreatedAt,
+		&entity.UpdatedAt,
+		&entity.DeletedAt,
+	)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			err = user.ErrUserNotFound
+			return
+		}
+
+		logger.Error(ctx, ops, "error r.db.QueryRowContext %v", err)
+		return
+	}
+
+	return
 }

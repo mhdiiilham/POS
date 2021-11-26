@@ -25,6 +25,7 @@ type (
 		CreateUser(ctx context.Context, entity user.User) (userID int, err error)
 		GetUsers(ctx context.Context, merchantID, lastID, limit int) (users []user.User, totalData int, err error)
 		DeleteUser(ctx context.Context, userID int) error
+		GetUser(ctx context.Context, userID int) (entity user.User, err error)
 	}
 )
 
@@ -51,6 +52,7 @@ func (s *server) Routes(ctx context.Context) http.Handler {
 	userAPI.HandleFunc("", s.CreateUser).Methods(http.MethodPost)
 	userAPI.HandleFunc("", s.GetUsers).Methods(http.MethodGet)
 	userAPI.HandleFunc("/{userId}", s.RemoveUser).Methods(http.MethodDelete)
+	userAPI.HandleFunc("/{userId}", s.GetUser).Methods(http.MethodGet)
 
 	JSON, _ := json.Marshal(Response{
 		Code:    http.StatusRequestTimeout,
