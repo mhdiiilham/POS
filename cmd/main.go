@@ -66,7 +66,7 @@ func realMain(ctx context.Context, env string) (*sql.DB, error) {
 		cfg.Database.DBName,
 	)
 
-	logger.Info(ctx, ops, "connecting to postgresql")
+	logger.Info(ctx, ops, "connecting to postgresql on %s:%s", cfg.Database.Host, cfg.Database.Port)
 	db, dbErr := database.NewPostgreSQLConnection(ctx, dbDNS)
 	if dbErr != nil {
 		return nil, dbErr
