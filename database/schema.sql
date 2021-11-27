@@ -75,3 +75,8 @@ CREATE INDEX ON "Product" ("name");
 CREATE INDEX ON "OutletProduct" ("outlet_id");
 
 CREATE INDEX ON "OutletProduct" ("product_id");
+
+ALTER TABLE "Merchant" ADD "created_at" timestamp;
+ALTER TABLE "Merchant" ADD "updated_at" timestamp;
+ALTER TABLE "Merchant" ADD "deleted_at" timestamp;
+ALTER TABLE "Merchant" ALTER COLUMN  "name" SET NOT NULL;
