@@ -10,7 +10,25 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (s *apiService) Login(ctx context.Context, email, password string) (accessToken string, err error) {
+type userService struct {
+	userRepository user.Repository
+	hasher         Hasher
+	tokenSigner    TokenSigner
+}
+
+func NewUserService(
+	userRepository user.Repository,
+	pwdHasher Hasher,
+	tokenSigner TokenSigner,
+) *userService {
+	return &userService{
+		userRepository: userRepository,
+		hasher:         pwdHasher,
+		tokenSigner:    tokenSigner,
+	}
+}
+
+func (s *userService) Login(ctx context.Context, email, password string) (accessToken string, err error) {
 	const ops = "service.user.Login"
 	entity, err := s.userRepository.FindUserByEmail(ctx, email)
 	if err != nil {
@@ -39,8 +57,8 @@ func (s *apiService) Login(ctx context.Context, email, password string) (accessT
 	return accessToken, nil
 }
 
-func (s *apiService) CreateUser(ctx context.Context, entity user.User) (userID int, err error) {
-	const ops = "service.apiService.CreateUser"
+func (s *userService) CreateUser(ctx context.Context, entity user.User) (userID int, err error) {
+	const ops = "service.userService.CreateUser"
 	var hashedPwd string
 	var insertedID int64
 	var u *user.User
@@ -74,8 +92,8 @@ func (s *apiService) CreateUser(ctx context.Context, entity user.User) (userID i
 	return int(insertedID), nil
 }
 
-func (s *apiService) GetUsers(ctx context.Context, merchantID, lastID, limit int) (users []user.User, totalData int, err error) {
-	const ops = "service.apiService.GetUsers"
+func (s *userService) GetUsers(ctx context.Context, merchantID, lastID, limit int) (users []user.User, totalData int, err error) {
+	const ops = "service.userService.GetUsers"
 	paginationOpts := user.RepositoryGetUserPaginationOptions{
 		Limit:  limit,
 		Cursor: lastID,
@@ -90,8 +108,8 @@ func (s *apiService) GetUsers(ctx context.Context, merchantID, lastID, limit int
 	return
 }
 
-func (s *apiService) DeleteUser(ctx context.Context, userID int) error {
-	const ops = "service.apiService.DeleteUser"
+func (s *userService) DeleteUser(ctx context.Context, userID int) error {
+	const ops = "service.userService.DeleteUser"
 	err := s.userRepository.Remove(ctx, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -105,8 +123,8 @@ func (s *apiService) DeleteUser(ctx context.Context, userID int) error {
 	return nil
 }
 
-func (s *apiService) GetUser(ctx context.Context, userID int) (entity user.User, err error) {
-	const ops = "service.apiService.GetUser"
+func (s *userService) GetUser(ctx context.Context, userID int) (entity user.User, err error) {
+	const ops = "service.userService.GetUser"
 
 	entity, err = s.userRepository.GetUser(ctx, userID)
 	if err != nil {

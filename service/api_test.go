@@ -57,7 +57,7 @@ func Test_apiService_Login(t *testing.T) {
 			Sign(ctx, 1, email, 1).
 			Return(jwt, nil).Times(1)
 
-		service := service.NewAPIService(userRepository, hasher, tokenSigner)
+		service := service.NewUserService(userRepository, hasher, tokenSigner)
 
 		accessToken, err := service.Login(ctx, email, password)
 		assert.NoError(t, err)
@@ -83,7 +83,7 @@ func Test_apiService_Login(t *testing.T) {
 			Return(nil, sql.ErrNoRows).
 			Times(1)
 
-		service := service.NewAPIService(userRepository, hasher, tokenSigner)
+		service := service.NewUserService(userRepository, hasher, tokenSigner)
 
 		accessToken, err := service.Login(ctx, email, password)
 		assert.ErrorIs(t, err, expectedErr)
@@ -108,7 +108,7 @@ func Test_apiService_Login(t *testing.T) {
 			Return(nil, sql.ErrConnDone).
 			Times(1)
 
-		service := service.NewAPIService(userRepository, hasher, tokenSigner)
+		service := service.NewUserService(userRepository, hasher, tokenSigner)
 
 		accessToken, err := service.Login(ctx, email, password)
 		assert.ErrorIs(t, err, expectedErr)
@@ -145,7 +145,7 @@ func Test_apiService_Login(t *testing.T) {
 			Return(bcrypt.ErrMismatchedHashAndPassword).
 			Times(1)
 
-		service := service.NewAPIService(userRepository, hasher, tokenSigner)
+		service := service.NewUserService(userRepository, hasher, tokenSigner)
 
 		accessToken, err := service.Login(ctx, email, password)
 		assert.ErrorIs(t, err, user.ErrInvalidEmailAndPasword)
@@ -182,7 +182,7 @@ func Test_apiService_Login(t *testing.T) {
 			Return(bcrypt.ErrHashTooShort).
 			Times(1)
 
-		service := service.NewAPIService(userRepository, hasher, tokenSigner)
+		service := service.NewUserService(userRepository, hasher, tokenSigner)
 
 		accessToken, err := service.Login(ctx, email, password)
 		assert.ErrorIs(t, err, bcrypt.ErrHashTooShort)
@@ -224,7 +224,7 @@ func Test_apiService_Login(t *testing.T) {
 			Sign(ctx, 1, email, 1).
 			Return("", jwt.ErrInvalidKey).Times(1)
 
-		service := service.NewAPIService(userRepository, hasher, tokenSigner)
+		service := service.NewUserService(userRepository, hasher, tokenSigner)
 
 		accessToken, err := service.Login(ctx, email, password)
 		assert.ErrorIs(t, err, jwt.ErrInvalidKey)
@@ -246,7 +246,7 @@ func Test_apiService_CreateUser(t *testing.T) {
 		hasher := smock.NewMockHasher(ctrl)
 		tokenSigner := smock.NewMockTokenSigner(ctrl)
 
-		s := service.NewAPIService(userRepository, hasher, tokenSigner)
+		s := service.NewUserService(userRepository, hasher, tokenSigner)
 		resp, err := s.CreateUser(ctx, payload)
 		assert.Empty(t, resp)
 		assert.NotNil(t, err)
@@ -276,7 +276,7 @@ func Test_apiService_CreateUser(t *testing.T) {
 			Return("", bcrypt.ErrHashTooShort).
 			Times(1)
 
-		s := service.NewAPIService(userRepository, hasher, tokenSigner)
+		s := service.NewUserService(userRepository, hasher, tokenSigner)
 		resp, err := s.CreateUser(ctx, payload)
 		assert.Empty(t, resp)
 		assert.NotNil(t, err)
@@ -318,7 +318,7 @@ func Test_apiService_CreateUser(t *testing.T) {
 			Return(int64(0), sql.ErrConnDone).
 			Times(1)
 
-		s := service.NewAPIService(userRepository, hasher, tokenSigner)
+		s := service.NewUserService(userRepository, hasher, tokenSigner)
 		resp, err := s.CreateUser(ctx, payload)
 		assert.Empty(t, resp)
 		assert.NotNil(t, err)
@@ -360,7 +360,7 @@ func Test_apiService_CreateUser(t *testing.T) {
 			Return(int64(1), nil).
 			Times(1)
 
-		s := service.NewAPIService(userRepository, hasher, tokenSigner)
+		s := service.NewUserService(userRepository, hasher, tokenSigner)
 		resp, err := s.CreateUser(ctx, payload)
 		assert.NotEmpty(t, resp)
 		assert.NoError(t, err)
@@ -396,7 +396,7 @@ func Test_apiService_CreateUser(t *testing.T) {
 			Return(&user.User{}, sql.ErrNoRows).
 			Times(1)
 
-		s := service.NewAPIService(userRepository, hasher, tokenSigner)
+		s := service.NewUserService(userRepository, hasher, tokenSigner)
 		resp, err := s.CreateUser(ctx, payload)
 		assert.Empty(t, resp)
 		assert.NotNil(t, err)
@@ -432,7 +432,7 @@ func Test_apiService_CreateUser(t *testing.T) {
 			Return(&user.User{}, sql.ErrConnDone).
 			Times(1)
 
-		s := service.NewAPIService(userRepository, hasher, tokenSigner)
+		s := service.NewUserService(userRepository, hasher, tokenSigner)
 		resp, err := s.CreateUser(ctx, payload)
 		assert.Empty(t, resp)
 		assert.NotNil(t, err)
@@ -464,7 +464,7 @@ func Test_apiService_GetUsers(t *testing.T) {
 			Get(ctx, merchantID, &opts).
 			Return([]user.User{}, 0, sql.ErrConnDone)
 
-		s := service.NewAPIService(userRepository, hasher, tokenSigner)
+		s := service.NewUserService(userRepository, hasher, tokenSigner)
 		users, totalData, err := s.GetUsers(ctx, merchantID, opts.Cursor, opts.Limit)
 		assert.Empty(t, users)
 		assert.Empty(t, totalData)
@@ -490,7 +490,7 @@ func Test_apiService_GetUsers(t *testing.T) {
 			Get(ctx, merchantID, &opts).
 			Return([]user.User{{}, {}, {}, {}, {}, {}, {}, {}, {}, {}}, 1764, nil)
 
-		s := service.NewAPIService(userRepository, hasher, tokenSigner)
+		s := service.NewUserService(userRepository, hasher, tokenSigner)
 		users, totalData, err := s.GetUsers(ctx, merchantID, opts.Cursor, opts.Limit)
 		assert.NoError(t, err)
 		assert.Equal(t, totalData, 1764)
@@ -518,7 +518,7 @@ func Test_apiService_DeleteUser(t *testing.T) {
 			Return(sql.ErrNoRows).
 			Times(1)
 
-		s := service.NewAPIService(userRepository, hasher, tokenSigner)
+		s := service.NewUserService(userRepository, hasher, tokenSigner)
 		err := s.DeleteUser(ctx, userID)
 		assert.NotNil(t, err)
 		assert.ErrorIs(t, err, user.ErrUserNotFound)
@@ -539,7 +539,7 @@ func Test_apiService_DeleteUser(t *testing.T) {
 			Return(sql.ErrTxDone).
 			Times(1)
 
-		s := service.NewAPIService(userRepository, hasher, tokenSigner)
+		s := service.NewUserService(userRepository, hasher, tokenSigner)
 		err := s.DeleteUser(ctx, userID)
 		assert.NotNil(t, err)
 		assert.ErrorIs(t, err, sql.ErrTxDone)
@@ -560,7 +560,7 @@ func Test_apiService_DeleteUser(t *testing.T) {
 			Return(nil).
 			Times(1)
 
-		s := service.NewAPIService(userRepository, hasher, tokenSigner)
+		s := service.NewUserService(userRepository, hasher, tokenSigner)
 		err := s.DeleteUser(ctx, userID)
 		assert.Nil(t, err)
 	})
@@ -585,7 +585,7 @@ func Test_apiService_GetUser(t *testing.T) {
 			Return(user.User{}, user.ErrUserNotFound).
 			Times(1)
 
-		s := service.NewAPIService(userRepository, hasher, tokenSigner)
+		s := service.NewUserService(userRepository, hasher, tokenSigner)
 		resp, err := s.GetUser(ctx, userID)
 		assert.Empty(t, resp)
 		assert.ErrorIs(t, err, user.ErrUserNotFound)
@@ -606,7 +606,7 @@ func Test_apiService_GetUser(t *testing.T) {
 			Return(user.User{}, sql.ErrConnDone).
 			Times(1)
 
-		s := service.NewAPIService(userRepository, hasher, tokenSigner)
+		s := service.NewUserService(userRepository, hasher, tokenSigner)
 		resp, err := s.GetUser(ctx, userID)
 		assert.Empty(t, resp)
 		assert.ErrorIs(t, err, sql.ErrConnDone)
@@ -630,7 +630,7 @@ func Test_apiService_GetUser(t *testing.T) {
 			Return(u, nil).
 			Times(1)
 
-		s := service.NewAPIService(userRepository, hasher, tokenSigner)
+		s := service.NewUserService(userRepository, hasher, tokenSigner)
 		resp, err := s.GetUser(ctx, userID)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, resp)

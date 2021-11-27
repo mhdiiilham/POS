@@ -14,6 +14,7 @@ mock-prepare:
 mock:
 	mockgen -source=service/interface.go -destination=service/mock/interface_mock.go -package=mock
 	mockgen -source=entity/user/interface.go -destination=entity/user/mock/interface_mock.go -package=mock
+	mockgen -source=entity/merchant/interface.go -destination=entity/merchant/mock/interface_mock.go -package=mock
 
 test:
 	go clean -testcache

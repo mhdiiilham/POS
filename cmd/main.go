@@ -75,7 +75,7 @@ func realMain(ctx context.Context, env string) (*sql.DB, error) {
 	pwdHasher := hasher.NewHasher()
 	tokenService := token.NewJWTService(cfg.JwtSecret, cfg.JwtIssuer)
 	userRepository := userrepository.NewRepository(db)
-	userService := service.NewAPIService(userRepository, pwdHasher, tokenService)
+	userService := service.NewUserService(userRepository, pwdHasher, tokenService)
 
 	restAPI := api.NewPOSServer(userService, tokenService)
 	srv, err := server.New(cfg.Port)
